@@ -5,7 +5,7 @@
     $user = "root";
     $pass = "Samlat03";
     $db = "pizzaria";
-    $host = "localhost:3307";
+    $host = "127.0.0.1:3307";
 
     try{
 
