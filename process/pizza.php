@@ -1,87 +1,121 @@
-<?php
+<?php 
 
-  include_once("conn.php");
+    include_once("conn.php");
 
-  $method = $_SERVER["REQUEST_METHOD"];
 
-  // Resgate dos dados, montagem do pedido
-  if($method === "GET") {
 
-    $bordasQuery = $conn->query("SELECT * FROM bordas;");
+    $method = $_SERVER["REQUEST_METHOD"];
 
-    $bordas = $bordasQuery->fetchAll();
+    if ($method === "GET") {
 
-    $massasQuery = $conn->query("SELECT * FROM massas;");
+        $tamanhosQuery = $conn->query("SELECT * FROM tamanhos;");
 
-    $massas = $massasQuery->fetchAll();
+        $tamanhos = $tamanhosQuery->fetchAll();
 
-    $saboresQuery = $conn->query("SELECT * FROM sabores;");
 
-    $sabores = $saboresQuery->fetchAll();
-  
-  // Criação do pedido
-  } else if($method === "POST") {
+        $bordasQuery = $conn->query("SELECT * FROM bordas;");
 
-    $data = $_POST;
+        $bordas = $bordasQuery->fetchAll();
 
-    $borda = $data["borda"];
-    $massa = $data["massa"];
-    $sabores = $data["sabores"];
+        
+        $massasQuery = $conn->query("SELECT * FROM massas;");
 
-    // validação de sabores máximos
-    if(count($sabores) > 3) {
+        $massas = $massasQuery->fetchAll();
 
-      $_SESSION["msg"] = "Selecione no máximo 3 sabores!";
-      $_SESSION["status"] = "warning";
+        
+        $ingredientesQuery = $conn->query("SELECT * FROM ingredientes;");
 
-    } else {
+        $ingredientes = $ingredientesQuery->fetchAll();
+         
+        
+    } else if($method === "POST"){
+        
+        $data = $_POST;
+        
+        $tamanho = $data["tamanho"];
+        $borda = $data["borda"];
+        $massa = $data["massa"];
+        $ingredientes = $data["ingredientes"];
 
-      // salvando borda e massa na pizza
-      $stmt = $conn->prepare("INSERT INTO pizzas (borda_id, massa_id) VALUES (:borda, :massa)");
+        if (empty($_POST['tamanho']) || empty($_POST['borda']) || empty($_POST['massa'])) {
 
-      // filtrando inputs
-      $stmt->bindParam(":borda", $borda, PDO::PARAM_INT);
-      $stmt->bindParam(":massa", $massa, PDO::PARAM_INT);
+            $campoVazio = [];
+            
+            
+            if(empty($_POST['tamanho'])){
+                $campoVazio[] = 'tamanho';
+            }
+            if(empty($_POST['borda'])){
+                $campoVazio[] = 'borda';
+            }
+            if(empty($_POST['massa'])){
+                $campoVazio[] = 'massa';
+            }
 
-      $stmt->execute();
+            $_SESSION["msg"] = "Selecione no mínimo uma opção para: " . implode(', ',$campoVazio);
+            $_SESSION["status"] = "warning";
 
-      // resgatando último id da última pizza
-      $pizzaId = $conn->lastInsertId();
+            
+        } else {
+            
+            $stmt = $conn->prepare("INSERT INTO pizzas (borda_id, massa_id, tamanho_id) VALUES (:borda,:massa,:tamanho)");
 
-      $stmt = $conn->prepare("INSERT INTO pizza_sabor (pizza_id, sabor_id) VALUES (:pizza, :sabor)");
+            function calcularPrecoTotal($tamanho, $borda, $massa, $ingredientes) {
+                global $conn;
+                $precoTotal = 0;            
+                // Recupere os preços individualmente para cada componente (tamanho, borda, massa, ingredientes)
+                $precoTotal += obterPrecoComponente('tamanhos', $tamanho);
+                $precoTotal += obterPrecoComponente('bordas', $borda);
+                $precoTotal += obterPrecoComponente('massas', $massa);
+                foreach ($ingredientes as $ingrediente) {$precoTotal += obterPrecoComponente('ingredientes', $ingrediente);}
+            return $precoTotal;
+            }
+            function obterPrecoComponente($tabela, $id) {
+                global $conn;
+                $stmt = $conn->prepare("SELECT preco FROM $tabela WHERE id = :id");
+                $stmt->bindParam(":id", $id, PDO::PARAM_INT);
+                $stmt->execute();
+            return $stmt->fetchColumn();
+            }
+            $precoTotal = calcularPrecoTotal($tamanho, $borda, $massa, $ingredientes);
+            $stmt = $conn->prepare("INSERT INTO pizzas (borda_id, massa_id, tamanho_id, preco_total) VALUES (:borda, :massa, :tamanho, :precoTotal)");
+            $stmt->bindParam(":tamanho", $tamanho, PDO::PARAM_INT);
+            $stmt->bindParam(":borda", $borda, PDO::PARAM_INT);
+            $stmt->bindParam(":massa", $massa, PDO::PARAM_INT);
 
-      // repetição até terminar de salvar todos os sabores
-      foreach($sabores as $sabor) {
+            $stmt->bindParam(":precoTotal", $precoTotal, PDO::PARAM_STR); 
+            $stmt->execute();
+            
 
-        // filtrando os inputs
-        $stmt->bindParam(":pizza", $pizzaId, PDO::PARAM_INT);
-        $stmt->bindParam(":sabor", $sabor, PDO::PARAM_INT);
+            
 
-        $stmt->execute();
+            $pizzaId = $conn->lastInsertId();
 
-      }
+            $stmt = $conn->prepare("INSERT INTO pizza_ingrediente (pizza_id, ingrediente_id) VALUES (:pizza,:ingrediente)");
 
-      // criar o pedido da pizza
-      $stmt = $conn->prepare("INSERT INTO pedidos (pizza_id, status_id) VALUES (:pizza, :status)");
+            foreach($ingredientes as $ingrediente){
+                $stmt->bindParam(":pizza", $pizzaId, PDO::PARAM_INT);
+                $stmt->bindParam(":ingrediente", $ingrediente, PDO::PARAM_INT);
 
-      // status -> sempre inicia com 1, que é em produção
-      $statusId = 1;
+                $stmt->execute();
 
-      // filtrar inputs
-      $stmt->bindParam(":pizza", $pizzaId);
-      $stmt->bindParam(":status", $statusId);
+            }
 
-      $stmt->execute();
+            $stmt = $conn->prepare("INSERT INTO pedidos (pizza_id) VALUES (:pizza)");
 
-      // Exibir mensagem de sucesso
-      $_SESSION["msg"] = "Pedido realizado com sucesso";
-      $_SESSION["status"] = "success";
+            $stmt = $conn->prepare("INSERT INTO pedidos (pizza_id, preco_total) VALUES (:pizza,:preco_total)");
+            $statusId = 1;
+            $stmt->bindParam(":pizza", $pizzaId);
+            $stmt->bindParam(":preco_total", $precoTotal);
+            $stmt->execute();
+
+            $_SESSION["msg"] = "Pedido realizado com sucesso!";
+            $_SESSION["status"] = "success";
+
+        }
+        
+        header("Location:..");
 
     }
-
-    // Retorna para página inicial
-    header("Location: ..");
-
-  }
-
+    
 ?>
