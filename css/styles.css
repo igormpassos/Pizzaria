@@ -1,11 +1,112 @@
+html, body{
+    height: 100%;
+}
+
+/*NAVBAR*/
+#brand-logo{
+    width: 50px;
+}
+
+.navbar.navbar-expand-lg{
+    background-color: #000;
+    font-weight: bold;
+}
+
+.navbar.navbar-expand-lg a{
+    color: #FFF;
+}
+
+.user-icon{
+  margin-right: 20px;
+}
+
+/*HOME*/
+#main-banner{
+    background-image: url("../img/pizza-banner2.jpg");
+    height: 300px;
+    background-position: center;
+    background-size:cover;
+    width: 100%;
+    background-position-y: -300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+    
+}
+
+#main-banner h1{
+    color: #FFF;
+    background-color: rgba(0, 0, 0, 0.5);
+    text-align: center;
+    padding: 30px;
+    text-transform: uppercase;
+    width: 500px;
+
+}
+
+#main-container {
+    margin-bottom: 100px;
+    
+    text-align: center;
+    min-height: 50%;
+}
+
+#main-container h2{
+    margin-bottom: 30px;
+    margin-top: 30px;
+}
+
+.row{
+    margin: 0;
+}
+
+#pizza-form{
+    max-width: 550px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+#pizza-form label {
+    font-weight: bold;
+}
+  
+.btn.btn-primary {
+    background-color: #000;
+    border-color: #000;
+
+}
+
+/* ALERTA */
+.alert {
+    border-radius: 0;
+    text-align: center;
+    margin-bottom: 0;
+    font-weight: bold;
+    padding: 20px;
+    font-size: 18px;
+}
+  
+.alert.alert-success {
+    border: 2px solid #155724;
+}
+  
+  .alert.alert-warning {
+    border: 2px solid #856404;
+}
+  
+  .alert p {
+    margin-bottom: 0;
+}
 html, body {
   height: 100%;
 }
 
 /* NAVBAR */
 #brand-logo {
-  width: 50px;
+  width: 35px;
 }
+
 
 .navbar.navbar-expand-lg {
   background-color: #000;
@@ -16,131 +117,119 @@ html, body {
   color: #FFF;
 }
 
-/* HOME */
-#main-banner {
-  background-image: url("../img/pizza-banner.jpg");
-  height: 300px;
-  background-position: center;
-  background-size: cover;
-  width: 100%;
-  background-position-y: -300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-#main-banner h1 {
+.car-icon {
+  font-size: 24px;
   color: #FFF;
-  background-color: #000;
-  text-align: center;
-  padding: 30px;
-  text-transform: uppercase;
-  width: 550px;
-  font-size: 50px;
+  cursor: pointer;
+  margin-left: 10px;
+  width: 30px;
+
 }
 
-#main-container {
-  margin-bottom: 100px;
-  padding: 50px 0;
-  text-align: center;
-  min-height: 50%;
-}
 
-#main-container h2 {
-  margin-bottom: 30px;
-}
+/* DASHBOARD */
 
-.row {
+/* Adiciona estilo para melhorar a apresentação da lista de ingredientes */
+.table ul.ingredientes-list {
+  list-style: none;
+  padding: 0;
   margin: 0;
 }
 
-#pizza-form {
-  max-width: 550px;
-  margin: 0 auto;
-  text-align: left;
+
+.table ul.ingredientes-list li {
+  margin-bottom: 5px;
+  list-style: none;
+
 }
 
-#pizza-form label {
-  font-weight: bold;
+
+
+/* Adiciona estilo para centralizar o texto verticalmente nas células da tabela */
+.table td, .table th {
+  vertical-align: middle;
+ 
 }
 
-.btn.btn-primary {
-  background-color: #000;
-  border-color: #000;
+/* Adiciona estilo para espaçamento entre as células da tabela */
+.table td, .table th {
+  padding: 10px;
 }
 
-/* ALERTA */
-.alert {
-  border-radius: 0;
-  text-align: center;
-  margin-bottom: 0;
-  font-weight: bold;
-  padding: 20px;
-  font-size: 18px;
-}
-
-.alert.alert-success {
-  border: 2px solid #155724;
-}
-
-.alert.alert-warning {
-  border: 2px solid #856404;
-}
-
-.alert p {
-  margin-bottom: 0;
-}
-
-/* DASHBOARD */
-.delete-btn, .update-btn {
-  border: none;
-  background-color: transparent;
-}
-
+/* Adiciona estilo para o botão de exclusão */
 .delete-btn {
-  padding-top: 10px;
+  border: 2px solid #d9534f;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.delete-btn p {
+  margin: 0;
+  color: #721c24;
 }
 
 .delete-btn i {
   color: #721c24;
-  font-size: 20px;
+  font-size: 15px;
 }
 
-.update-btn {
-  margin-left: 10px;
+/* Adiciona estilo para o ícone de exclusão */
+.delete-btn i {
+  margin-left: 5px;
+  margin-right: 5px;
 }
 
-.update-btn i {
-  color: #004085;
+.confirm-btn{
+  border: 2px solid #5cb85c;
+  background-color: transparent;
+  cursor: pointer;
 }
 
-.update-form {
+.confirm-btn p {
+  margin: 0;
+  color: #155724;
+}
+
+.confirm-btn i{
+  color: #155724;
+  font-size: 15px;
+
+}
+
+.confirm-btn i {
+  margin-left: 5px;
+  margin-right: 5px;
+}
+/*    Admin     */
+
+
+
+.ingredientes-list-adm li{
   display: flex;
-  flex-direction: row;
-}
-
-.status-input {
-  width: 65%;
-}
-
-.table ul {
-  text-align: left;
-}
-
-/* FOOTER */
-footer {
-  position: relative;
-  width: 100%;
-  height: 175px;
-  background-color: #000;
-  color: #FFF;
-  display: flex;
+  justify-content: center ;
   align-items: center;
-  justify-content: center;
-  font-weight: bold;
+  
 }
 
-/* RESPONSIVO */
+
+
+/*FOOTER*/
+
+footer{
+    position: relative;
+    width: 100%;
+    height: 80px;
+    background-color: #000;
+    color: #FFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+
+/*RESPONSIVIDADE*/
 @media(max-width: 425px) {
 
   #main-banner {
@@ -168,10 +257,11 @@ footer {
 
   .table-container {
     padding: 0;
+    
   }
 
   .table td, .table th {
-    padding: .5rem;
+    padding: 0.5rem;
   }
 
   th span {
@@ -181,8 +271,23 @@ footer {
   .table thead th:nth-child(5),
   .table thead th:nth-child(6),
   .table tbody td:nth-child(5),
-  .table tbody td:nth-child(6) {
-    display: none;
+  .table tbody td:nth-child(6) 
+  {
+  display: none;
   }
 
 }
+
+.total-container {
+  position: relative;
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 17px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  background-color: #4caf50; /* Verde */
+
+}
+

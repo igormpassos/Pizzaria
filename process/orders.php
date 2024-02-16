@@ -29,6 +29,20 @@
 
       $pizzaData = $pizzaQuery->fetch(PDO::FETCH_ASSOC);
 
+      // resgatando o tamanho da pizza
+
+
+      $tamanhoQuery = $conn->prepare("SELECT * FROM tamanhos WHERE id = :tamanho_id");
+
+      $tamanhoQuery->bindParam(":tamanho_id", $pizzaData["tamanho_id"]);
+
+      $tamanhoQuery->execute();
+
+      $tamanho = $tamanhoQuery->fetch(PDO::FETCH_ASSOC);
+
+      $pizza["tamanho"] = $tamanho["tipo"];
+
+
       // resgatando a borda da pizza
       $bordaQuery = $conn->prepare("SELECT * FROM bordas WHERE id = :borda_id");
 
@@ -51,46 +65,42 @@
 
       $pizza["massa"] = $massa["tipo"];
 
-      // resgatando os sabores da pizza
-      $saboresQuery = $conn->prepare("SELECT * FROM pizza_sabor WHERE pizza_id = :pizza_id");
+      // resgatando os ingredientes da pizza
+      $ingredientesQuery = $conn->prepare("SELECT * FROM pizza_ingrediente WHERE pizza_id = :pizza_id");
 
-      $saboresQuery->bindParam(":pizza_id", $pizza["id"]);
+      $ingredientesQuery->bindParam(":pizza_id", $pizza["id"]);
 
-      $saboresQuery->execute();
+      $ingredientesQuery->execute();
 
-      $sabores = $saboresQuery->fetchAll(PDO::FETCH_ASSOC);
+      $ingredientes = $ingredientesQuery->fetchAll(PDO::FETCH_ASSOC);
 
-      // resgatando o nome dos sabores
-      $saboresDaPizza = [];
+      // resgatando o nome dos ingredientes
+      $ingredientesDaPizza = [];
 
-      $saborQuery = $conn->prepare("SELECT * FROM sabores WHERE id = :sabor_id");
+      $ingredienteQuery = $conn->prepare("SELECT * FROM ingredientes WHERE id = :ingrediente_id");
 
-      foreach($sabores as $sabor) {
+       //resgatando o preço total da pizza
+       $pizza["precoTotal"] = $pedido["preco_total"];
 
-        $saborQuery->bindParam(":sabor_id", $sabor["sabor_id"]);
+      foreach($ingredientes as $ingrediente) {
 
-        $saborQuery->execute();
+        $ingredienteQuery->bindParam(":ingrediente_id", $ingrediente["ingrediente_id"]);
 
-        $saborPizza = $saborQuery->fetch(PDO::FETCH_ASSOC);
+        $ingredienteQuery->execute();
 
-        array_push($saboresDaPizza, $saborPizza["nome"]);
+        $ingredientePizza = $ingredienteQuery->fetch(PDO::FETCH_ASSOC);
+
+        array_push($ingredientesDaPizza, $ingredientePizza["nome"]);
 
       }
 
-      $pizza["sabores"] = $saboresDaPizza;
-
-      // adicionar o status do pedido
-      $pizza["status"] = $pedido["status_id"];
+      $pizza["ingredientes"] = $ingredientesDaPizza;
 
       // Adicionar o array de pizza, ao array das pizzas
       array_push($pizzas, $pizza);
 
     }
 
-    // Resgatando os status
-    $statusQuery = $conn->query("SELECT * FROM status;");
-
-    $status = $statusQuery->fetchAll();
 
   } else if($method === "POST") {
 
@@ -98,40 +108,47 @@
     $type = $_POST["type"];
 
     // deletar pedido
-    if($type === "delete") {
+    
 
-      $pizzaId = $_POST["id"];
+      if ($type === "delete") {
+        $selectedOrders = isset($_POST["selected_orders"]) ? $_POST["selected_orders"] : [];
 
-      $deleteQuery = $conn->prepare("DELETE FROM pedidos WHERE pizza_id = :pizza_id;");
+        if (!empty($selectedOrders)) {
+            $placeholders = implode(',', array_fill(0, count($selectedOrders), '?'));
 
-      $deleteQuery->bindParam(":pizza_id", $pizzaId, PDO::PARAM_INT);
+            $deleteQuery = $conn->prepare("DELETE FROM pedidos WHERE pizza_id IN ($placeholders)");
 
-      $deleteQuery->execute();
+            foreach ($selectedOrders as $index => $pizzaId) {
+                $deleteQuery->bindValue($index + 1, $pizzaId, PDO::PARAM_INT);
+            }
 
-      $_SESSION["msg"] = "Pedido removido com sucesso!";
-      $_SESSION["status"] = "success";
+            $deleteQuery->execute();
 
-    // Atualizar status do pedido
-    } else if($type === "update") {
+            $_SESSION["msg"] = "Pedido(s) cancelado(s) com sucesso!";
+            $_SESSION["status"] = "success";
+        }
+    } elseif ($type === "insert") {
+        // Inserir novo pedido
+        $pizzaId = $_POST["id"];
+        $precoTotal = $_POST["preco_total"];
 
-      $pizzaId = $_POST["id"];
-      $statusId = $_POST["status"];
+        $stmt = $conn->prepare("INSERT INTO pedidos (pizza_id, preco_total) VALUES (:pizza_id, :preco_total) ON DUPLICATE KEY UPDATE preco_total = :preco_total");
+        $stmt->bindParam(":pizza_id", $pizzaId, PDO::PARAM_INT);
+        $stmt->bindParam(":preco_total", $precoTotal, PDO::PARAM_STR);
 
-      $updateQuery = $conn->prepare("UPDATE pedidos SET status_id = :status_id WHERE pizza_id = :pizza_id");
+        $stmt->execute();
 
-      $updateQuery->bindParam(":pizza_id", $pizzaId, PDO::PARAM_INT);
-      $updateQuery->bindParam(":status_id", $statusId, PDO::PARAM_INT);
-
-      $updateQuery->execute();
-
-      $_SESSION["msg"] = "Pedido atualizado com sucesso!";
-      $_SESSION["status"] = "success";
-
+        $_SESSION["msg"] = "Pedido inserido com sucesso!";
+        $_SESSION["status"] = "success";
     }
 
-    // retorna usuário para dashboard
-    header("Location: ../dashboard.php");
-
+      if (strpos($_SERVER['HTTP_REFERER'], 'admin.php') !== false) {
+        header("Location: ../admin.php");
+      } else {
+        header("Location: ../dashboard.php");
+      }
+    
+    exit();
+  
   }
-
 ?>
