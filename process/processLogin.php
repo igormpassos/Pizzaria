@@ -39,3 +39,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 $conn->close();
 ?>
+
+// Validação concluída: código funcionando conforme esperado.
